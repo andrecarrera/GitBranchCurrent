@@ -1,5 +1,8 @@
-import java.awt.FlowLayout;
+import java.awt.Color;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
+import java.io.*;
 import java.util.Properties;
 
 import javax.swing.*;
@@ -15,43 +18,55 @@ public class GitBranchThread  extends Thread {
 		prop = pProp;
 		
 	}
+	
     public void run() {
-    	
     	JFrame frame = new JFrame("JPanel Example");	  
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setBounds(100, 200, 300, 300); 
-   
-        JLabel label = new JLabel("JLabel Title"); //Creating a JLabel with title
-        JLabel label2 = new JLabel("JLabel Title2"); //Creating a JLabel with title
-        label2.setText(prop.getProperty("pastas"));
-        JPanel panel = new JPanel(); // Creating a JPanel
-        panel.setLayout(new GridLayout(0, 2));
-        
-        
-        
-        JButton button1,button2; // Initializing JButtons
-        button1 = new JButton("Hello!"); //Creating a Button1 with a title 
-        button2 = new JButton("Welcome to CodeSpeedy!");  //Creating a Button2 with a title
-  
-        //panel.add(button1); //Adding the button1 to panel
-        //panel.add(button2); //Adding the button2 to panel
-        panel.add(label); //Adding the leabel to panel
-        panel.add(label2); //Adding the leabel to panel
-        
-        //panel.setBackground(Color.CYAN); //Setting the BG of the panel
-        
-        frame.add(panel); // Adding panel to frame
-        frame.setVisible(true); //Displaying the frame
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(250, 80);
+        frame.setUndecorated(true);
+        frame.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
 
-    	
-    	
-    	
+        
+        JPanel panel = new JPanel();            // Creating a JPanel
+        panel.setLayout(new GridLayout(0, 2));  // Grid n linhas, 2 colunas
+
+        JLabel labelT = new JLabel("Branchs em USO"); 
+        JLabel labelT2 = new JLabel(""); 
+        panel.add(labelT); 
+        panel.add(labelT2);
+        
+        String pastasMonitoradas[] = prop.getProperty("pastas").split(";"); //Pastas configuradas
+
+        //Primeira pasta monitorada
+        JLabel labelB1 = new JLabel(""); 
+        JLabel labelB1U = new JLabel("x"); 
+        labelB1.setText(pastasMonitoradas[0] + " =>");
+        panel.add(labelB1); 
+        panel.add(labelB1U);
+
+        //Segunda pasta monitorada (se houver)
+        JLabel labelB2 = new JLabel(""); 
+        JLabel labelB2U = new JLabel("x"); 
+        if (pastasMonitoradas.length > 1) {
+            labelB2.setText(pastasMonitoradas[1] + " =>");
+            panel.add(labelB2); 
+            panel.add(labelB2U); 
+        }
+
+        frame.add(panel); // Adding panel to frame
+        frame.setAlwaysOnTop(true);
+        
+        frame.setOpacity(0.85f);//50% opaque
+        
+        frame.setVisible(true); //Displaying the frame
+        showOnScreen(0, frame);
+        
     	
         while (true) {
-            //System.out.println(this.getName() + ": New Thread is running..." + i++);
-            
-            
-            
+        	labelB1U.setText(ObtemBranch(pastasMonitoradas[0]));
+            if (pastasMonitoradas.length > 1) {
+                labelB2U.setText(ObtemBranch(pastasMonitoradas[1]));
+            }
             try {
                 //Aguarda 10 segundos
                 Thread.sleep(10000);
@@ -64,9 +79,42 @@ public class GitBranchThread  extends Thread {
     
     public String ObtemBranch(String pLocal) {
     	
-    	
-    	return pLocal;
+        try {
+            String cmdSet[] = {"cmd", "/c /k", "c: & cd\\" + pLocal.substring(3) + " & git branch --show-current"};
+
+            BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(cmdSet).getInputStream()));
+            return bufferedreader.readLine();
+        } catch (Exception ex) {
+        	return "(não obtido)";
+        }
     }
+    
+    
+	public static void showOnScreen(int screen, JFrame frame ) {
+	    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	    GraphicsDevice[] gd = ge.getScreenDevices();
+	    int width = 0, height = 0;
+	    if( screen > -1 && screen < gd.length ) {
+	        width = gd[screen].getDefaultConfiguration().getBounds().width;
+	        height = gd[screen].getDefaultConfiguration().getBounds().height;
+
+	        //frame.setLocation(
+	        //    ((width / 2) - (frame.getSize().width / 2)) + gd[screen].getDefaultConfiguration().getBounds().x, 
+	        //    ((height / 2) - (frame.getSize().height / 2)) + gd[screen].getDefaultConfiguration().getBounds().y
+	        //);
+
+	        frame.setLocation(
+		            (width - frame.getSize().width) + gd[screen].getDefaultConfiguration().getBounds().x, 
+		            (height - frame.getSize().height - 40) + gd[screen].getDefaultConfiguration().getBounds().y
+		    );
+
+	        frame.setVisible(true);
+	    } else {
+	        throw new RuntimeException( "No Screens Found" );
+	    }
+	}	
+    
+    
 }
 
 
