@@ -59,7 +59,9 @@ public class GitBranchThread  extends Thread {
         frame.setOpacity(0.85f);//50% opaque
         
         frame.setVisible(true); //Displaying the frame
-        showOnScreen(0, frame);
+        
+        Integer monitor = Integer.parseInt(prop.getProperty("monitor")); 
+        showOnScreen(monitor, frame);
         
     	
         while (true) {
@@ -90,7 +92,7 @@ public class GitBranchThread  extends Thread {
     }
     
     
-	public static void showOnScreen(int screen, JFrame frame ) {
+	public void showOnScreen(int screen, JFrame frame ) {
 	    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 	    GraphicsDevice[] gd = ge.getScreenDevices();
 	    int width = 0, height = 0;
@@ -103,10 +105,29 @@ public class GitBranchThread  extends Thread {
 	        //    ((height / 2) - (frame.getSize().height / 2)) + gd[screen].getDefaultConfiguration().getBounds().y
 	        //);
 
-	        frame.setLocation(
-		            (width - frame.getSize().width) + gd[screen].getDefaultConfiguration().getBounds().x, 
-		            (height - frame.getSize().height - 40) + gd[screen].getDefaultConfiguration().getBounds().y
-		    );
+	        String lado = prop.getProperty("lado").toUpperCase();
+	        String local = prop.getProperty("local").toUpperCase();
+	       
+	        Integer posicaoX = 0;
+	        Integer posicaoY = 0;
+	        
+	        if (lado.contains("DIR")) {
+	        	posicaoX = (width - frame.getSize().width) + gd[screen].getDefaultConfiguration().getBounds().x; 
+	        } else {
+	            posicaoX = gd[screen].getDefaultConfiguration().getBounds().x; 
+	        }
+	        
+	        if (local.contains("INF")) {
+	            posicaoY = (height - frame.getSize().height - 40) + gd[screen].getDefaultConfiguration().getBounds().y;
+	        } else {
+	            posicaoY = gd[screen].getDefaultConfiguration().getBounds().y;
+	        }
+	        frame.setLocation(posicaoX, posicaoY);	        
+	        
+	        //frame.setLocation(
+		    //         (width - frame.getSize().width) + gd[screen].getDefaultConfiguration().getBounds().x, 
+		    //         (height - frame.getSize().height - 40) + gd[screen].getDefaultConfiguration().getBounds().y
+		    // );
 
 	        frame.setVisible(true);
 	    } else {
