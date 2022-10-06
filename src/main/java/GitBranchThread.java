@@ -44,6 +44,12 @@ public class GitBranchThread  extends Thread {
         panel.add(labelB1); 
         panel.add(labelB1U);
 
+        JLabel labelB1W = new JLabel("");     
+        JLabel labelB1WU = new JLabel("");   //LABEL Alerta par compilar WKS
+        labelB1WU.setForeground(Color.red);        
+        panel.add(labelB1W); 
+        panel.add(labelB1WU);
+        
         //Segunda pasta monitorada (se houver)
         JLabel labelB2 = new JLabel(""); 
         JLabel labelB2U = new JLabel("x"); 
@@ -66,6 +72,8 @@ public class GitBranchThread  extends Thread {
     	
         while (true) {
         	labelB1U.setText(ObtemBranch(pastasMonitoradas[0]));
+        	labelB1WU.setText(VerificarAlertas(pastasMonitoradas[0]));
+       	
             if (pastasMonitoradas.length > 1) {
                 labelB2U.setText(ObtemBranch(pastasMonitoradas[1]));
             }
@@ -88,6 +96,31 @@ public class GitBranchThread  extends Thread {
             return bufferedreader.readLine();
         } catch (Exception ex) {
         	return "(não obtido)";
+        }
+    }
+
+    
+    public String VerificarAlertas(String pLocal) {
+    	
+        try {
+            String cmdSet[] = {"cmd", "/c /k", "c: & cd\\" + pLocal.substring(3) + " & git status"};
+
+            BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(cmdSet).getInputStream()));
+            
+            Boolean encontrouOutput = false; 
+    		while (true){
+                if (bufferedreader.readLine().contains("/output/") ) {
+                	encontrouOutput = true;
+                	break;
+                }
+    		}
+    		if (encontrouOutput){
+    			return "*Compilar WKS*";
+    		}
+            
+            return "";
+        } catch (Exception ex) {
+        	return "";
         }
     }
     
