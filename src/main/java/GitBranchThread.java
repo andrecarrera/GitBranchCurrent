@@ -46,6 +46,7 @@ public class GitBranchThread  extends Thread {
 
         JLabel labelB1W = new JLabel("");     
         JLabel labelB1WU = new JLabel("");   //LABEL Alerta par compilar WKS
+        labelB1W.setForeground(Color.blue);        
         labelB1WU.setForeground(Color.red);        
         panel.add(labelB1W); 
         panel.add(labelB1WU);
@@ -72,7 +73,9 @@ public class GitBranchThread  extends Thread {
     	
         while (true) {
         	labelB1U.setText(ObtemBranch(pastasMonitoradas[0]));
-        	labelB1WU.setText(VerificarAlertas(pastasMonitoradas[0]));
+
+        	labelB1W.setText(VerificarPUSH(pastasMonitoradas[0]));
+        	labelB1WU.setText(VerificarOUTPUT(pastasMonitoradas[0]));
        	
             if (pastasMonitoradas.length > 1) {
                 labelB2U.setText(ObtemBranch(pastasMonitoradas[1]));
@@ -99,28 +102,48 @@ public class GitBranchThread  extends Thread {
         }
     }
 
+    public String VerificarOUTPUT(String pLocal) {
+    	if (VerificarAlertas(pLocal, "OUTPUT")) {
+			return "*Compilar WKS*";
+    	} else {
+    		return "";
+    	}
+    }
+
+    public String VerificarPUSH(String pLocal) {
+    	if (VerificarAlertas(pLocal, "PUSH")) {
+			return "!!!FAZER PUSH!!!";
+    	} else {
+    		return "";
+    	}
+    }
     
-    public String VerificarAlertas(String pLocal) {
-    	
+    public Boolean VerificarAlertas(String pLocal, String pTipo) {
         try {
             String cmdSet[] = {"cmd", "/c /k", "c: & cd\\" + pLocal.substring(3) + " & git status"};
 
             BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(cmdSet).getInputStream()));
             
-            Boolean encontrouOutput = false; 
+            Boolean encontrouTexto = false; 
     		while (true){
-                if (bufferedreader.readLine().contains("/output/") ) {
-                	encontrouOutput = true;
-                	break;
-                }
-    		}
-    		if (encontrouOutput){
-    			return "*Compilar WKS*";
+    			if (pTipo.equals("OUTPUT")) {
+		            if (bufferedreader.readLine().contains("/output/") ) {
+		            	encontrouTexto = true;
+		            	break;
+		            }
+    			}
+    			
+    			if (pTipo.equals("PUSH")) {
+		            if (bufferedreader.readLine().contains("\"git push\"") ) {
+		            	encontrouTexto = true;
+		            	break;
+		            }
+    			}
     		}
             
-            return "";
+            return encontrouTexto;
         } catch (Exception ex) {
-        	return "";
+        	return false;
         }
     }
     
